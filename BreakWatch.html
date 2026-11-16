@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>תורנות שמירה – תיכון וחט״ב</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf8f4;--card:#fff;--ink:#1f2d46;--mute:#6b7280;--line:#e6e1d6;--head:#1f2d46;--onhead:#fff;--gold:#8a6a2f;--band:#f1ede5;--me:#fff1c9;--chg:#dff1e5;--ok:#2d7a4f;--bad:#b3402f;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a28;--card:#1b2638;--ink:#e8ecf3;--mute:#a1abbd;--line:#2d3a52;--head:#2a3a58;--gold:#d9b469;--band:#222d42;--me:#4a3f1c;--chg:#1f4030;--ok:#7fd0a1;--bad:#f08a78;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121a28;--card:#1b2638;--ink:#e8ecf3;--mute:#a1abbd;--line:#2d3a52;--head:#2a3a58;--gold:#d9b469;--band:#222d42;--me:#4a3f1c;--chg:#1f4030;--ok:#7fd0a1;--bad:#f08a78;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Heebo,Arial,sans-serif;line-height:1.5}
+main{max-width:900px;margin:0 auto;padding:16px}
+h1{font-size:1.3rem;margin:6px 0 10px;padding-bottom:10px;border-bottom:3px solid var(--head)}
+h2{font-size:1.05rem;margin:16px 0 6px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.seg{display:flex;background:var(--band);border-radius:10px;padding:3px;flex-wrap:wrap}
+.seg button{border:0;background:none;color:var(--ink);font:inherit;padding:7px 14px;border-radius:8px;cursor:pointer}
+.seg button[aria-selected="true"]{background:var(--head);color:var(--onhead)}
+select,textarea{font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:9px;padding:8px}
+textarea{width:100%}
+.hint{color:var(--mute);font-size:.9rem;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.day{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
+.day:last-child{border:0}.day b{min-width:86px}
+.chip{border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:.85rem;padding:5px 10px;border-radius:16px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn{border:0;font:inherit;font-weight:700;padding:10px 16px;border-radius:9px;cursor:pointer;background:var(--head);color:var(--onhead)}
+.btn.alt{background:none;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:.9rem}
+th{background:var(--head);color:var(--onhead);padding:8px 6px;font-weight:500}
+td{border-bottom:1px solid var(--line);border-inline-start:1px solid var(--line);padding:6px;text-align:center}
+td.l{text-align:start}
+.me{background:var(--me);font-weight:700}
+.chg{background:var(--chg)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.li{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border:0}.li small{color:var(--mute)}
+.toast{position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:420px;margin:0 auto;background:var(--ink);color:var(--bg);padding:12px;border-radius:10px;text-align:center;z-index:9}
+.toast[hidden]{display:none}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<h1>תורנות שמירה תשפ״ז – תיכון וחט״ב</h1>
+<div class="bar">
+<div class="seg" id="tabs" role="tablist"></div>
+<select id="mo" aria-label="חודש"></select>
+</div>
+<div id="v"></div>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+var days=['יום א’','יום ב’','יום ג’','יום ד’','יום ה’'];
+var D=[{"n":"ראשונה","t":"09:45–10:10","r":[["שער בזק","אבי סער|צבי ברקאי|רון שולויס|רונן שמיר|שרית חבני","hs"],["מגרש","עמית בן דוד|אביטל יהושע|תמי פלד חיון|רותם בומגיגר|אלעד שטרית","hs"],["קומה 1","סיגל יצחק|רונית אור זהבי|ענבל סירי|מירב זלינגר|חני יפה","hs"],["קומה 2","שקד דדון|רונית ביין יוסף|פני בכר|סיגל יצחק|יניב חלמר","hs"],["קומה 3","ירין משיח|יונתן אשל|דורין קיין|מיכל בריל|דאניה מוסטפא","hs"],["סדנאות","נוי נחום|מריאנה נצר|יניב חלמר|עמית שפייזר|אדוה סלמאן","hs"],["קפיטריה","הילה שלג|אורלי סוארי|בן טאובר|יהב לוי|נטע מסד","ms"],["מועדון תלמידים","יעל אפנגר|מירב הד|עדי קובה|חן אחבון|יעל אפנגר","ms"],["דשא + פינג פונג","אילן מועלם|אסף נבון|רונית בנבנישתי|לורי דינאי|אילן מועלם","ms"],["קומה 2","מאירה נבו|מירי זר|נורית מאור|שירן צדיק|מירי זר","ms"],["קומה 3","אורלי לוי חדד|רחל בר|שולי ניסים|ריקי חתוכה|אסא ציון","ms"],["קומה 4","ויואן אוסטרוב|יהב לוי|סתיו קאשי|ויואן אוסטרוב|מיכל מזרחי","ms"],["פטיו","מירי זר|יעל אפנגר|מירב משיח|מירי חמרה|עידו טלמור","ms"],["פטיו","ערן טוויטו|יולי זעירא|אריאל טנג'י|עדי לוינסון|נתי כהן","hs"]]},{"n":"שנייה","t":"11:40–12:00","r":[["מגרש","פני בכר|נתי כהן|מירב זלינגר|תומר יהב|תמי פלד חיון","hs"],["קומה 1","ילנה לזרב|ברק שלום|איריס יולזרי|שמרית כהן ברבי|טל ישראלוביץ","hs"],["קומה 2","עידן כהן|עמית בן דוד|נח כהן|אלעד לביא|עידן כהן","hs"],["קומה 3","נאור זעירא|ערן טוויטו|תומר יהב|טל ישראלוביץ|ילנה לזרב","hs"],["סדנאות","עינב שפירא|עינב שפירא|איל שפירא|דורין קיין|עדי לוינסון","hs"],["קפיטריה","עידו טלמור|מור בקל|דורית קרבצקי|עידו טלמור|דורית קרבצקי","ms"],["מועדון תלמידים","קארין כהן|סולי מנשה|שקד דאמרי|טל חוגה|איריס יצחקי","ms"],["דשא + פינג פונג","מליקאן וחידי|נטע מסד|אורלי סוארי|אסף נבון|יניב סמדרובסקי","ms"],["קומה 2","קורל הופמן|נור ריזקה|עוז חזן|מאירה נבו|נור ריזקה","ms"],["קומה 3","סער ורסמן|בר בסלי|מיכל מזרחי|עלמה מסיקה|סתיו קאשי","ms"],["קומה 4","מירי נצר|יולנדה מידן|רחל בר|מירי נצר|מליקאן וחידי","ms"],["פטיו","רחל בר|מיכל מזרחי|קורל מיארה|שיראל פז|מירי חמרה","ms"],["פטיו","אלעד לביא|הדס דניאל|עמית שפייזר|אורית גת|שקד דדון","hs"]]},{"n":"שלישית","t":"13:30–13:45","r":[["מגרש","אריאל טנג'י|נח כהן|רותם בומגיגר|אלעד שטרית|אביטל יהושע","hs"],["קומה 1","דורון זרצקי|דורון זרצקי|יונתן הופמן|יולי זעירא|דאניה מוסטפא","hs"],["קומה 2","יונתן הופמן|ברק שלום|שמרית כהן ברבי|חן לאון|יונתן אשל","hs"],["קומה 3","ענבל סירי|||איל שפירא|","hs"],["סדנאות","||||","hs"],["קפיטריה","יניב סמדרובסקי|שירי יוליה|קורל מיארה|בן טאובר|שירי יוליה","ms"],["מועדון תלמידים","טל חוגה|בר סתמקר|פז בכר|ליאת נקש|עומר שרעבי","ms"],["דשא + פינג פונג","מריאנה נצר|סיגל יצחק|כנרת נועה כהן|מרינה ספיבק|מרינה ספיבק","ms"],["קומה 2","יאן ליפמן|ליאת נקש|יאן ליפמן|שחר ברנט|נדיה אהרונוב","ms"],["קומה 3","מירב זלינגר|אסא ציון|אורלי לוי חדד|קורל מיארה|ראדיקה פרקש","ms"],["קומה 4","עומר שרעבי|עוז חזן|ליזה חדד|יולנדה מידן|","ms"],["פטיו","יהב לוי|נורית מאור|מירב משיח|בן טאובר|אורלי לוי חדד","ms"],["פטיו","||||","hs"]]}];
+var $=function(i){return document.getElementById(i)};
+var names=[],tdiv={};
+D.forEach(function(b){b.r.forEach(function(r){r[1].split('|').forEach(function(n){if(!n)return;if(names.indexOf(n)<0)names.push(n);(tdiv[n]=tdiv[n]||{})[r[2]]=1})})});
+names.sort(function(a,b){return a.localeCompare(b,'he')});
+var pad=function(n){return(n<10?'0':'')+n};
+var iso=function(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+var dow=function(s){return new Date(s+'T12:00:00').getDay()};
+var lab=function(s){return days[dow(s)]+' '+(+s.slice(8))+'.'+(+s.slice(5,7))};
+var plc=function(p,v){return p==='פטיו'?'פטיו (משותף)':(v==='hs'?'תיכון · בניין 2 · ':'חט״ב · בניין 1 · ')+p};
+function datesOf(m){var y=+m.slice(0,4),mo=+m.slice(5)-1,o=[],d=new Date(y,mo,1);while(d.getMonth()===mo){if(d.getDay()<5)o.push(iso(d));d.setDate(d.getDate()+1)}return o}
+function mkey(off){var d=new Date();d=new Date(d.getFullYear(),d.getMonth()+off,1);return d.getFullYear()+'-'+pad(d.getMonth()+1)}
+var mlabel=function(m){return new Date(m+'-01T12:00:00').toLocaleDateString('he-IL',{month:'long',year:'numeric'})};
+
+var db=null,uid=null,admin=false,tab='mine',month=mkey(1);
+var all={},scheds={},edit={dates:{},note:''},myName='',preview=null,loaded='';
+try{myName=localStorage.getItem('dutyName')||''}catch(e){}
+
+function toast(t){var e=$('toast');e.textContent=t;e.hidden=false;setTimeout(function(){e.hidden=true},2400)}
+function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML}
+
+/* ---------- tabs & months ---------- */
+function drawTabs(){
+ var t=[['mine','האילוצים שלי'],['res','השיבוץ שלי'],['base','לוח בסיס']];
+ if(admin)t.push(['adm','ניהול ושיבוץ']);
+ $('tabs').innerHTML=t.map(function(x){return '<button data-t="'+x[0]+'" aria-selected="'+(tab===x[0])+'">'+x[1]+'</button>'}).join('');
+}
+$('tabs').onclick=function(e){var t=e.target.dataset.t;if(!t)return;tab=t;render()};
+$('mo').innerHTML=[0,1,2].map(function(o){var k=mkey(o);return '<option value="'+k+'"'+(k===month?' selected':'')+'>'+mlabel(k)+'</option>'}).join('');
+$('mo').onchange=function(){month=this.value;preview=null;render()};
+
+function nameSel(){
+ return '<div class="bar"><label for="nm"><b>שם המורה:</b></label><select id="nm"><option value="">בחירת שם</option>'+names.map(function(n){return '<option'+(n===myName?' selected':'')+'>'+esc(n)+'</option>'}).join('')+'</select></div>';
+}
+function bindName(){
+ var s=$('nm');if(!s)return;
+ s.onchange=function(){myName=this.value;try{localStorage.setItem('dutyName',myName)}catch(e){}loaded='';render()};
+}
+
+/* ---------- my constraints ---------- */
+function loadEdit(){
+ var k=month+'|'+myName+'|'+uid;if(loaded===k)return;loaded=k;
+ var a=all[uid],m=a&&a.months&&a.months[month];
+ edit={dates:JSON.parse(JSON.stringify((m&&m.dates)||{})),note:(m&&m.note)||''};
+}
+function vMine(){
+ var h=nameSel();
+ if(!db||!uid)return h+'<p class="hint">כדי לשלוח אילוצים יש להיכנס עם חשבון Claude ולפתוח את העמוד דרך הקישור המשותף.</p>';
+ if(!myName)return h+'<p class="hint">בחרו את שמכם כדי לסמן אילוצים.</p>';
+ loadEdit();
+ var sent=all[uid]&&all[uid].months&&all[uid].months[month];
+ h+='<p class="hint">סמנו את הימים וההפסקות שבהם <b>אי אפשר</b> לשבץ אתכם ב'+mlabel(month)+'. השיבוץ ייבנה סביב האילוצים. מחליף בקומה ייבחר מאותו בניין, ובפטיו מכל אחד מהצוותים.</p><div class="card">';
+ datesOf(month).forEach(function(d){
+  var cur=edit.dates[d]||[],allDay=cur.length===3;
+  h+='<div class="day"><b>'+lab(d)+'</b><button class="chip" data-d="'+d+'" data-b="all" aria-pressed="'+allDay+'">כל היום</button>';
+  D.forEach(function(B,bi){h+='<button class="chip" data-d="'+d+'" data-b="'+bi+'" aria-pressed="'+(cur.indexOf(bi)>-1)+'">'+B.n+'</button>'});
+  h+='</div>';
+ });
+ h+='</div><label for="nt"><b>הערה להנהלה (לא חובה)</b></label><textarea id="nt" rows="2">'+esc(edit.note)+'</textarea>';
+ h+='<div class="row"><button class="btn" id="save">'+(sent?'עדכון אילוצים':'שליחת אילוצים')+'</button></div>';
+ if(sent)h+='<p class="ok">✓ האילוצים לחודש זה נשלחו. אפשר לעדכן עד שההנהלה מפיקה את השיבוץ.</p>';
+ return h;
+}
+function bindMine(){
+ var c=document.querySelectorAll('.chip');
+ [].forEach.call(c,function(b){b.onclick=function(){
+  var d=b.dataset.d,x=b.dataset.b,cur=edit.dates[d]||[];
+  if(x==='all')cur=cur.length===3?[]:[0,1,2];
+  else{x=+x;var i=cur.indexOf(x);if(i>-1)cur.splice(i,1);else cur.push(x)}
+  if(cur.length)edit.dates[d]=cur;else delete edit.dates[d];
+  render();
+ }});
+ if($('nt'))$('nt').oninput=function(){edit.note=this.value};
+ if($('save'))$('save').onclick=async function(){
+  this.disabled=true;
+  var prev=(all[uid]&&all[uid].months)||{},mm={};
+  Object.keys(prev).forEach(function(k){mm[k]=prev[k]});
+  mm[month]={dates:edit.dates,note:edit.note.trim(),ts:Date.now()};
+  try{await db.collection('constraints').doc(uid).set({name:myName,months:mm});toast('האילוצים נשלחו')}
+  catch(e){toast('השליחה נכשלה, נסו שוב');this.disabled=false}
+ };
+}
+
+/* ---------- my schedule ---------- */
+function slotsOf(m){var s=scheds[m];return s?s.slots.map(function(x){return{d:x[0],b:x[1],p:x[2],n:x[3],base:x[4],v:x[5]}}):null}
+function vRes(){
+ var h=nameSel();if(!myName)return h+'<p class="hint">בחרו את שמכם כדי לראות את השיבוץ.</p>';
+ var s=slotsOf(month);
+ if(!s)return h+'<p class="hint">השיבוץ ל'+mlabel(month)+' טרם פורסם.</p>';
+ var mine=s.filter(function(x){return x.n===myName}),rel=s.filter(function(x){return x.base===myName&&x.n!==myName});
+ h+='<h2>התורנויות שלי ב'+mlabel(month)+' ('+mine.length+')</h2><div class="card">';
+ if(!mine.length)h+='<span class="hint">אין תורנויות החודש.</span>';
+ mine.forEach(function(x){h+='<div class="li"><span>'+lab(x.d)+' · הפסקה '+D[x.b].n+' <small>'+D[x.b].t+'</small></span><span>'+esc(plc(x.p,x.v))+(x.base!==myName?' <small class="ok">(במקום '+esc(x.base)+')</small>':'')+'</span></div>'});
+ h+='</div>';
+ if(rel.length){h+='<h2>שוחררתם בעקבות האילוצים</h2><div class="card">';rel.forEach(function(x){h+='<div class="li"><span>'+lab(x.d)+' · הפסקה '+D[x.b].n+'</span><span>'+esc(plc(x.p,x.v))+' <small>(מחליף/ה: '+esc(x.n||'—')+')</small></span></div>'});h+='</div>'}
+ return h;
+}
+
+/* ---------- base table ---------- */
+var bdiv='hs';
+function vBase(){
+ var h='<div class="seg" id="dv" style="margin-bottom:10px"><button data-v="hs" aria-selected="'+(bdiv==='hs')+'">תיכון – בניין 2</button><button data-v="ms" aria-selected="'+(bdiv==='ms')+'">חט״ב – בניין 1</button></div><p class="hint">שמירה בקומות לפי בניין. הפטיו משותף: מורי התיכון והחט״ב שומרים בו יחד (ת׳ = תיכון, ח׳ = חט״ב). זה הלוח הקבוע שממנו נבנה השיבוץ החודשי.</p><div class="wrap"><table><thead><tr><th>הפסקה</th><th>מקום</th>'+days.map(function(d){return '<th>'+d+'</th>'}).join('')+'</tr></thead><tbody>';
+ D.forEach(function(B){
+  var z=B.r.filter(function(r){return r[2]===bdiv&&r[0]!=='פטיו'}),pt=B.r.filter(function(r){return r[0]==='פטיו'}).sort(function(a,b){return a[2]===b[2]?0:a[2]==='hs'?-1:1});
+  var hd='<td rowspan="'+(z.length+1)+'"><b>'+B.n+'</b><br><small>'+B.t+'</small></td>';
+  z.forEach(function(r,i){
+   h+='<tr>'+(i===0?hd:'')+'<td>'+esc(r[0])+'</td>';
+   var nm=r[1].split('|');for(var d=0;d<5;d++)h+='<td'+(nm[d]&&nm[d]===myName?' class="me"':'')+'>'+esc(nm[d]||'–')+'</td>';
+   h+='</tr>'});
+  h+='<tr>'+(z.length?'':hd)+'<td><b>פטיו</b><br><small>משותף</small></td>';
+  for(var d=0;d<5;d++){
+   var ns=pt.map(function(r){return[r[2],r[1].split('|')[d]]}).filter(function(x){return x[1]});
+   h+='<td'+(myName&&ns.some(function(x){return x[1]===myName})?' class="me"':'')+'>'+(ns.map(function(x){return'<small>'+(x[0]==='hs'?'ת׳':'ח׳')+'</small> '+esc(x[1])}).join('<br>')||'–')+'</td>';
+  }
+  h+='</tr>';
+ });
+ return h+'</tbody></table></div>';
+}
+
+/* ---------- generator ---------- */
+function gen(){
+ var U={},cnt={},busy={},slots=[];
+ Object.keys(all).forEach(function(k){var a=all[k],m=a.months&&a.months[month];if(m&&a.name)U[a.name]=m.dates||{}});
+ var ok=function(n,d,b){return!(U[n]&&U[n][d]&&U[n][d].indexOf(b)>-1)};
+ names.forEach(function(n){cnt[n]=0});
+ datesOf(month).forEach(function(d){var w=dow(d);D.forEach(function(B,bi){B.r.forEach(function(r){var n=r[1].split('|')[w];if(n)slots.push({d:d,b:bi,p:r[0],v:r[2],base:n,n:''})})})});
+ slots.forEach(function(s){var k=s.d+s.b;busy[k]=busy[k]||{};if(ok(s.base,s.d,s.b)&&!busy[k][s.base]){s.n=s.base;busy[k][s.base]=1;cnt[s.base]++}});
+ slots.forEach(function(s){if(s.n)return;var k=s.d+s.b;
+  var c=names.filter(function(n){return!busy[k][n]&&ok(n,s.d,s.b)&&(s.p==='פטיו'||tdiv[n][s.v])}).sort(function(a,b){return cnt[a]-cnt[b]||a.localeCompare(b,'he')});
+  if(c.length){s.n=c[0];busy[k][c[0]]=1;cnt[c[0]]++}});
+ return slots;
+}
+function vAdm(){
+ var done=[],miss=[];
+ names.forEach(function(n){var ok=Object.keys(all).some(function(k){return all[k].name===n&&all[k].months&&all[k].months[month]});(ok?done:miss).push(n)});
+ var h='<h2>הגשת אילוצים – '+mlabel(month)+'</h2><div class="card"><b>'+done.length+' מתוך '+names.length+'</b> הגישו.'+(miss.length?'<br><small>טרם הגישו: '+miss.map(esc).join(', ')+'</small>':'')+'</div>';
+ h+='<div class="row"><button class="btn" id="gen">הפקת שיבוץ לפי האילוצים</button></div>';
+ var s=preview||slotsOf(month);
+ if(!s)return h+'<p class="hint">עדיין אין שיבוץ לחודש זה.</p>';
+ var ch=s.filter(function(x){return x.n!==x.base}),un=s.filter(function(x){return!x.n}),c={};
+ s.forEach(function(x){if(x.n)c[x.n]=(c[x.n]||0)+1});
+ h+='<h2>'+(preview?'תצוגה מקדימה':'שיבוץ מפורסם')+'</h2><div class="card">'+s.length+' תורנויות · '+ch.length+' שינויים מהלוח הקבוע · <span class="'+(un.length?'bad':'ok')+'">'+un.length+' ללא שיבוץ</span></div>';
+ if(preview)h+='<div class="row"><button class="btn" id="pub">פרסום השיבוץ למורים</button><button class="btn alt" id="gen2">הפקה מחדש</button></div>';
+ if(ch.length){h+='<h2>שינויים</h2><div class="card">';ch.forEach(function(x){h+='<div class="li"><span>'+lab(x.d)+' · '+D[x.b].n+' · '+esc(plc(x.p,x.v))+'</span><span class="'+(x.n?'':'bad')+'">'+esc(x.base)+' ← '+esc(x.n||'ללא שיבוץ')+'</span></div>'});h+='</div>'}
+ h+='<h2>עומס לפי מורה</h2><div class="card">'+Object.keys(c).sort(function(a,b){return c[b]-c[a]}).map(function(n){return '<div class="li"><span>'+esc(n)+'</span><b>'+c[n]+'</b></div>'}).join('')+'</div>';
+ return h;
+}
+function bindAdm(){
+ var g=function(){preview=gen().map(function(x){return x});render()};
+ if($('gen'))$('gen').onclick=g;if($('gen2'))$('gen2').onclick=g;
+ if($('pub'))$('pub').onclick=async function(){
+  this.disabled=true;
+  try{await db.collection('schedules').doc(month).set({month:month,slots:preview.map(function(x){return[x.d,x.b,x.p,x.n,x.base,x.v]}),ts:Date.now()});preview=null;toast('השיבוץ פורסם')}
+  catch(e){toast('הפרסום נכשל');this.disabled=false}
+ };
+}
+
+/* ---------- render ---------- */
+function render(){
+ drawTabs();
+ var v=$('v');
+ v.innerHTML=tab==='mine'?vMine():tab==='res'?vRes():tab==='adm'?vAdm():vBase();
+ bindName();
+ if(tab==='base')[].forEach.call(document.querySelectorAll('#dv button'),function(b){b.onclick=function(){bdiv=b.dataset.v;render()}});
+ if(tab==='mine')bindMine();if(tab==='adm')bindAdm();
+}
+render();
+
+(async function(){
+ try{
+  var u=await claude.use('user');db=await claude.use('db');
+  if(u){uid=await u.id();admin=await u.isOwner()}
+  if(!db){render();return}
+  var snap=function(col,fn){db.collection(col).onSnapshot(function(s){fn(s);if(!(tab==='mine'&&document.activeElement&&document.activeElement.id==='nt'))render()},function(){})};
+  snap('constraints',function(s){all={};s.docs.forEach(function(d){all[d.id]=d.data()})});
+  snap('schedules',function(s){scheds={};s.docs.forEach(function(d){scheds[d.id]=d.data()})});
+  render();
+ }catch(e){render()}
+})();
+</script>
+</body>
+</html>
